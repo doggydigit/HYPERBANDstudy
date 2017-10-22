@@ -25,7 +25,7 @@ def get_randomconfiguration(hyperparameters):
 def validate_configurations(configurations, traindata, trainlabels, validationdata, validationlabels):
     errors = [0]*len(configurations)
     for i in range(0, len(configurations)):
-        print configurations[i]
+        # print configurations[i]
         clf = svm.SVC(gamma=configurations[i][2],
                       C=configurations[i][1],
                       kernel=str(configurations[i][3]),
@@ -36,7 +36,7 @@ def validate_configurations(configurations, traindata, trainlabels, validationda
         for j in range(0, len(validationdata)):
             if round(prediction[j]) != validationlabels[j]:
                 errors[i] += 1
-        print("Configuration {} produced {} errors from {} validation sets".format(i, errors[i], len(validationlabels)))
+    #   print("Configuration {} produced {} errors from {} validation sets".format(i, errors[i], len(validationlabels)))
     return [float(error) / len(validationlabels) for error in errors]
 
 

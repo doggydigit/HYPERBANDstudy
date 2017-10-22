@@ -1,14 +1,15 @@
-#import numpy as np
-#import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib.pyplot as plt
 import os
 import sys
-#import math
-#from sklearn import svm
+import time
+import math
+from sklearn import svm
 from myfunctions import *
 from mnist import MNIST
+module_path = os.path.abspath(os.path.join('../scripts'))
 if module_path not in sys.path:
     sys.path.append(module_path)
-module_path = os.path.abspath(os.path.join('../scripts'))
 
 mndata = MNIST('../../Data/MNIST')
 mnist_data, mnist_labels = mndata.load_training()
@@ -27,25 +28,35 @@ hyperparameters = {"continuous": [("coef0", [-100.0, 100.0])],
                    "discrete": [("kernel", ["poly", "sigmoid", "rbf"])],
                    "integer": [("degree", [1, 5])]}
 nr_parameters = 5
-# Random search
-total_nr_configurations = 50
-configurations = [None]*total_nr_configurations
-for i in range(0, total_nr_configurations):
-    configurations[i] = get_randomconfiguration(hyperparameters)
 
-print("Nr of tested configurations is {}".format(total_nr_configurations))
-nrtrain = 6000
-nrval = 1000
-print "Starting validation of configurations"
-errors = validate_configurations(configurations, traindata[:nrtrain], trainlabels[:nrtrain],
-                                 validationdata[:nrval], validationlabels[:nrval])
+confnrs = [1, 5, 10, 20, 50, 100, 200, 500]
+trainnrs = [600, 1000, 2000, 5000]
+valnrs = [300, 500, 1000, 2000]
 
-besterror = 1
-for i in range(0,total_nr_configurations):
-    if errors[i] < besterror:
-        besterror = errors[i]
-        bestconfiguration = configurations[i]
+for cnr in confnrs:
+    for n in range(0, 4):
+        start_time = time.clock()
+        # Random search
+        total_nr_configurations = cnr
+        configurations = [None]*total_nr_configurations
+        for i in range(0, total_nr_configurations):
+            configurations[i] = get_randomconfiguration(hyperparameters)
 
-print "Best configuration is:"
-print bestconfiguration
-print("With best error:{}".format(besterror))
+        # print("Nr of tested configurations is {}".format(total_nr_configurations))
+        nrtrain = trainnrs[n]
+        nrval = valnrs[n]
+        # print "Starting validation of configurations"
+        errors = validate_configurations(configurations, traindata[:nrtrain], trainlabels[:nrtrain],
+                                         validationdata[:nrval], validationlabels[:nrval])
+
+        besterror = 1
+        for i in range(0, total_nr_configurations):
+            if errors[i] < besterror:
+                besterror = errors[i]
+                bestconf = configurations[i]
+        stop_time = time.clock()
+        fd = open('HPOcomparison.csv', 'a')
+        fd.write("Random,{},{},{},{},-,{},{},{},{},{}\n".format(total_nr_configurations, stop_time-start_time, nrtrain,
+                                                              nrval, bestconf[0], bestconf[1], bestconf[2], bestconf[3],
+                                                              bestconf[4],))
+        fd.close()
